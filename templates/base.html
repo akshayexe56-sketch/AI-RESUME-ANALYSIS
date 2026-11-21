@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ResumeAI - AI Resume Analyzer{% endblock %}</title>
+    <!-- Google Fonts & Bootstrap Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #1b64f2;
+            --primary-hover: #1450c7;
+            --accent-blue-soft: #edf5ff;
+            --badge-pill: #e1effe;
+            --bg-canvas: #f4f8fe;
+            --card-border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-dark: #0d1b2a;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-canvas: #090d16;
+            --card-border: #1e293b;
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue-soft: #14223b;
+            --badge-pill: #1e3a8a;
+            --sidebar-dark: #070c14;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Top Bar Styling matches UI screenshot */
+        .glass-nav-container {
+            padding: 1.25rem 2rem 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .custom-navbar {
+            background: #ffffff;
+            border-radius: 50px;
+            padding: 0.6rem 1.6rem;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.25s ease;
+        }
+
+        [data-bs-theme="dark"] .custom-navbar {
+            background: #111827;
+            border-color: #1f2937;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-logo {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+        }
+
+        [data-bs-theme="dark"] .brand-logo {
+            color: #f8fafc;
+        }
+
+        .brand-icon-box {
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .nav-pill-group {
+            background: #f1f5f9;
+            padding: 0.3rem 0.5rem;
+            border-radius: 30px;
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        [data-bs-theme="dark"] .nav-pill-group {
+            background: #1f2937;
+        }
+
+        .nav-pill-link {
+            text-decoration: none;
+            color: #475569;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        [data-bs-theme="dark"] .nav-pill-link {
+            color: #94a3b8;
+        }
+
+        .nav-pill-link.active, .nav-pill-link:hover {
+            background: #ffffff;
+            color: #1d4ed8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        [data-bs-theme="dark"] .nav-pill-link.active, [data-bs-theme="dark"] .nav-pill-link:hover {
+            background: #374151;
+            color: #60a5fa;
+        }
+
+        .btn-nav-login {
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.88rem;
+            border-radius: 24px;
+            padding: 0.5rem 1.25rem;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .btn-nav-login:hover {
+            background: #1e293b;
+            color: #ffffff;
+        }
+
+        .btn-nav-signup {
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 0.88rem;
+            border-radius: 24px;
+            padding: 0.5rem 1.25rem;
+            border: 1px solid #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        [data-bs-theme="dark"] .btn-nav-signup {
+            background: transparent;
+            color: #f8fafc;
+            border-color: #374151;
+        }
+
+        .theme-toggle-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        [data-bs-theme="dark"] .theme-toggle-btn {
+            background: #1f2937;
+            border-color: #374151;
+            color: #fbbf24;
+        }
+
+        /* Hero Pill Badge */
+        .sparkle-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            padding: 0.35rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        [data-bs-theme="dark"] .sparkle-badge {
+            background: #1e3a8a33;
+            border-color: #1d4ed8;
+            color: #93c5fd;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed #93c5fd;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2.2rem 1.5rem;
+            text-align: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        [data-bs-theme="dark"] .upload-dropzone {
+            background: #111827;
+            border-color: #3b82f6;
+        }
+
+        .upload-dropzone:hover {
+            border-color: #2563eb;
+            background: #f8faff;
+        }
+
+        .btn-browse {
+            background: #2563eb;
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 0.65rem 1.8rem;
+            border: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-browse:hover {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        /* Laptop Mockup Styling */
+        .laptop-frame {
+            background: #0f172a;
+            border-radius: 18px 18px 0 0;
+            padding: 10px 10px 0 10px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            position: relative;
+        }
+
+        .laptop-screen {
+            background: #ffffff;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+        }
+
+        [data-bs-theme="dark"] .laptop-screen {
+            background: #0d131f;
+        }
+
+        .laptop-base {
+            height: 14px;
+            background: #cbd5e1;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        .laptop-base::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #94a3b8;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Score Ring */
+        .score-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .footer-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        [data-bs-theme="dark"] .footer-card {
+            background: #111827;
+            border-color: #1f2937;
+        }
+
+        .feature-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .skill-badge {
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        [data-bs-theme="dark"] .skill-badge {
+            background: #312e81;
+            color: #c7d2fe;
+            border-color: #4338ca;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div class="glass-nav-container">
+        <nav class="custom-navbar d-flex align-items-center justify-content-between">
+            <a href="{% url 'landing' %}" class="brand-logo">
+                <div class="brand-icon-box">
+                    <i class="bi bi-file-earmark-check-fill"></i>
+                </div>
+                <span>Resume<span style="color:#2563eb;">AI</span></span>
+            </a>
+
+            <div class="nav-pill-group d-none d-lg-flex">
+                <a href="{% url 'landing' %}" class="nav-pill-link active">Home</a>
+                <a href="#services" class="nav-pill-link">Service</a>
+                <a href="#blogs" class="nav-pill-link">Blogs</a>
+                <a href="#about" class="nav-pill-link">About Us</a>
+                <a href="#pricing" class="nav-pill-link">Pricing</a>
+                <a href="#faq" class="nav-pill-link">FAQ</a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn-nav-signup text-decoration-none">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'history' %}" class="btn-nav-signup text-decoration-none d-none d-sm-inline-flex">
+                        <i class="bi bi-clock-history"></i> History
+                    </a>
+                    <a href="{% url 'profile' %}" class="btn-nav-signup text-decoration-none">
+                        <i class="bi bi-person-circle"></i> {{ user.username }}
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn-nav-login text-decoration-none">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-nav-login text-decoration-none">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                    <a href="{% url 'register' %}" class="btn-nav-signup text-decoration-none">
+                        <i class="bi bi-person-plus"></i> Sign Up
+                    </a>
+                {% endif %}
+                <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark/Light Mode">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Alert Messages -->
+    <div class="container mt-3" style="max-width: 1200px;">
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }} alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Advisory Banner Footer -->
+    <footer class="py-4 border-top mt-5" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);">
+        <div class="container text-center">
+            <p class="text-muted small mb-1">
+                <strong>Advisory Notice:</strong> ResumeAI provides diagnostic guidance and heuristic scoring calculated to help you optimize job applications. Scores do not represent an official scoring standard of any specific enterprise Applicant Tracking System (ATS).
+            </p>
+            <p class="text-muted small mb-0">
+                © 2026 ResumeAI Inc. All rights reserved. &bull; Engineered with Django, PyMuPDF, ReportLab, and Bootstrap.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dark Mode Logic -->
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('resumeai_theme') || 'light';
+        setTheme(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(nextTheme);
+        });
+
+        function setTheme(theme) {
+            htmlElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('resumeai_theme', theme);
+            if (theme === 'dark') {
+                themeIcon.className = 'bi bi-sun-fill';
+            } else {
+                themeIcon.className = 'bi bi-moon-stars';
+            }
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

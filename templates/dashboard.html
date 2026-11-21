@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - ResumeAI Analysis{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1360px;">
+    {% if not analysis %}
+        <div class="text-center py-5">
+            <div class="d-inline-flex p-4 rounded-circle bg-primary-subtle text-primary mb-3">
+                <i class="bi bi-file-earmark-arrow-up fs-1"></i>
+            </div>
+            <h3 class="fw-bold">No Resumes Analyzed Yet</h3>
+            <p class="text-muted">Upload your first resume in PDF or DOCX format to receive in-depth advisory scores and recommendations.</p>
+            <a href="{% url 'landing' %}" class="btn btn-primary rounded-pill px-4 fw-bold">Upload Resume</a>
+        </div>
+    {% else %}
+        <!-- Dashboard Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h3 class="fw-bold mb-0">{{ analysis.original_filename }}</h3>
+                    <span class="badge bg-secondary-subtle text-secondary text-uppercase">{{ analysis.file_type }}</span>
+                    <span class="badge bg-info-subtle text-info">Advisory Score</span>
+                </div>
+                <p class="text-muted small mb-0">Analyzed on {{ analysis.created_at|date:"F d, Y - H:i" }} &bull; File Size: {{ analysis.file_size_bytes|filesizeformat }}</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'download_report' analysis.id %}" class="btn btn-primary rounded-pill px-3 fw-bold shadow-sm">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF Report
+                </a>
+                <a href="{% url 'landing' %}" class="btn btn-outline-secondary rounded-pill px-3 fw-medium">
+                    <i class="bi bi-plus-lg me-1"></i> Analyze Another
+                </a>
+            </div>
+        </div>
+
+        <!-- Scores Row -->
+        <div class="row g-4 mb-4">
+            <!-- Overall Score Ring Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 rounded-4 shadow-sm p-4 text-center">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Overall Resume Score</h6>
+                    <div class="position-relative d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                        <canvas id="overallRingChart" width="150" height="150"></canvas>
+                        <div class="position-absolute text-center">
+                            <span class="fw-extrabold text-dark display-5" style="line-height: 1;">{{ analysis.overall_score }}</span>
+                            <span class="text-muted d-block small">/ 100</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        {% if analysis.overall_score >= 80 %}
+                            <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Excellent Candidate
+                            </span>
+                        {% elif analysis.overall_score >= 60 %}
+                            <span class="badge bg-warning-subtle text-warning fs-6 px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i> Good Standing
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-arrow-up-circle-fill me-1"></i> Needs Optimization
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted small mb-0">Calculated via 5 weighted dimensions (Advisory heuristic).</p>
+                </div>
+            </div>
+
+            <!-- ATS Compatibility Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 rounded-4 shadow-sm p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-muted text-uppercase mb-0" style="font-size: 0.8rem; letter-spacing: 0.05em;">ATS Compatibility</h6>
+                        <span class="fs-4 fw-extrabold text-success">{{ analysis.ats_compatibility }}%</span>
+                    </div>
+                    <div class="progress mb-4" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ analysis.ats_compatibility }}%;"></div>
+                    </div>
+                    <div class="d-flex flex-column gap-3">
+                        {% for chk in analysis.ats_checks|slice:":3" %}
+                            <div class="d-flex align-items-start gap-2">
+                                {% if chk.passed %}
+                                    <i class="bi bi-check-circle-fill text-success fs-5 mt-n1"></i>
+                                {% else %}
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5 mt-n1"></i>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold small">{{ chk.title }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ chk.details }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5 Weighted Dimensions Radar / Bar Card -->
+            <div class="col-lg-4 col-md-12">
+                <div class="card h-100 border-0 rounded-4 shadow-sm p-4">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Criteria Breakdown</h6>
+                    <div style="height: 190px;">
+                        <canvas id="breakdownBarChart"></canvas>
+                    </div>
+                    <div class="row text-center mt-3 g-1">
+                        <div class="col"><span class="badge bg-light text-secondary border small">Skills 25%</span></div>
+                        <div class="col"><span class="badge bg-light text-secondary border small">Exp 25%</span></div>
+                        <div class="col"><span class="badge bg-light text-secondary border small">Edu 15%</span></div>
+                        <div class="col"><span class="badge bg-light text-secondary border small">Fmt 15%</span></div>
+                        <div class="col"><span class="badge bg-light text-secondary border small">Key 20%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Sections: Skills Found & Job Match -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 rounded-4 shadow-sm p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-tags-fill text-primary me-2"></i>Extracted Skills</h5>
+                        <span class="badge bg-primary rounded-pill">{{ analysis.skills_found|length }} Identified</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for s in analysis.skills_found %}
+                            <span class="skill-badge">{{ s }}</span>
+                        {% empty %}
+                            <p class="text-muted small">No recognized industry skills found in text.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 rounded-4 shadow-sm p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-bullseye text-danger me-2"></i>Target Job Keyword Gaps</h5>
+                        {% if analysis.missing_skills %}
+                            <span class="badge bg-danger rounded-pill">{{ analysis.missing_skills|length }} Missing</span>
+                        {% else %}
+                            <span class="badge bg-success rounded-pill">Optimal Match</span>
+                        {% endif %}
+                    </div>
+                    {% if analysis.missing_skills %}
+                        <p class="text-muted small mb-2">The following skills are present in the target job description but were not detected in your resume:</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for m in analysis.missing_skills %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill fw-semibold">{{ m }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-3 bg-light rounded-3 text-center">
+                            <i class="bi bi-check2-all text-success fs-3 mb-2"></i>
+                            <p class="text-muted small mb-0">No job description provided or no keyword gaps found. All benchmark criteria met!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Grounded Recommendations List -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-stars text-warning me-2"></i>Grounded AI Recommendations</h5>
+            <div class="list-group list-group-flush">
+                {% for rec in analysis.recommendations %}
+                    <div class="list-group-item px-0 py-3 border-bottom d-flex align-items-start gap-3">
+                        <div class="p-2 rounded-3 {% if rec.severity == 'High' %}bg-danger-subtle text-danger{% elif rec.severity == 'Medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %}">
+                            <i class="bi bi-lightbulb-fill fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="fw-bold text-dark">{{ rec.category }}</span>
+                                <span class="badge {% if rec.severity == 'High' %}bg-danger{% elif rec.severity == 'Medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %} rounded-pill small">{{ rec.severity }} Priority</span>
+                            </div>
+                            <p class="text-secondary small mb-0">{{ rec.text }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if analysis %}
+<script>
+    // Overall Ring Chart
+    const ctxRing = document.getElementById('overallRingChart');
+    if (ctxRing) {
+        new Chart(ctxRing, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [{{ analysis.overall_score }}, {{ 100|add:"-"|add:analysis.overall_score }}],
+                    backgroundColor: ['#1d4ed8', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '80%',
+                responsive: false,
+                plugins: { tooltip: { enabled: false } }
+            }
+        });
+    }
+
+    // Breakdown Horizontal Bar Chart
+    const ctxBar = document.getElementById('breakdownBarChart');
+    if (ctxBar) {
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Skills (25%)', 'Experience (25%)', 'Education (15%)', 'Formatting (15%)', 'Keywords (20%)'],
+                datasets: [{
+                    label: 'Score',
+                    data: [
+                        {{ analysis.skills_score }},
+                        {{ analysis.experience_score }},
+                        {{ analysis.education_score }},
+                        {{ analysis.formatting_score }},
+                        {{ analysis.keywords_score }}
+                    ],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { min: 0, max: 100, grid: { display: false } },
+                    y: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

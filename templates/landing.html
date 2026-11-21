@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% block title %}ResumeAI - Get Expert Feedback on your Resume, instantly.{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1360px;">
+    <div class="row align-items-center g-5 pt-3">
+        <!-- Left Hero Column -->
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <span class="sparkle-badge">
+                    <i class="bi bi-stars"></i> AI Powered &bull; Smart Analysis
+                </span>
+            </div>
+
+            <h1 class="display-4 fw-extrabold mb-3" style="font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;">
+                Get Expert Feedback on your <span style="color: #2563eb; text-decoration: underline; text-decoration-color: #93c5fd; text-underline-offset: 8px;">Resume</span>, instantly.
+            </h1>
+
+            <p class="text-secondary fs-6 mb-4" style="max-width: 520px; line-height: 1.6;">
+                Our free AI-powered resume analyzer scores your resume based on key criteria and helps hiring managers notice you. Get actionable steps to revamp your resume and land more interviews.
+            </p>
+
+            <!-- Drag & Drop Upload Card -->
+            <form id="uploadForm" action="{% url 'upload_resume' %}" method="POST" enctype="multipart/form-data" class="mb-4">
+                {% csrf_token %}
+                <div class="upload-dropzone" id="dropArea">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow-sm" style="width: 54px; height: 54px; background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;">
+                            <i class="bi bi-cloud-arrow-up-fill fs-3"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1">Drop your resume here or choose a file.</h5>
+                    <p class="text-muted small mb-3">PDF, DOCX only. Max size: 10MB</p>
+
+                    <input type="file" name="resume_file" id="resumeFileInput" accept=".pdf,.docx" class="d-none" required>
+                    <button type="button" class="btn btn-browse" onclick="document.getElementById('resumeFileInput').click();">
+                        <i class="bi bi-folder-fill me-2"></i> Browse Files
+                    </button>
+                    <div id="selectedFileName" class="mt-2 text-primary fw-semibold small"></div>
+                </div>
+
+                <!-- Optional Target Job Description Matching Accordion -->
+                <div class="accordion mt-3" id="jdAccordion">
+                    <div class="accordion-item rounded-3 border">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-3 small fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJD">
+                                <i class="bi bi-bullseye me-2 text-primary"></i> Optional: Target Job Description (Skill Gap Match)
+                            </button>
+                        </h2>
+                        <div id="collapseJD" class="accordion-collapse collapse" data-bs-parent="#jdAccordion">
+                            <div class="accordion-body p-3">
+                                <textarea name="job_description" class="form-control form-control-sm" rows="3" placeholder="Paste the job requirements or job description here to check matching and missing keywords..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 text-end d-none" id="submitBtnContainer">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Analyze My Resume
+                    </button>
+                </div>
+            </form>
+
+            <!-- Trust Badge Section with Avatars matching screenshot -->
+            <div class="d-flex align-items-center flex-wrap gap-3 mt-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-primary fs-5"></i>
+                    <span class="small fw-semibold text-secondary">Trusted by over <strong class="text-dark">1M+</strong> job seekers worldwide</span>
+                </div>
+                <div class="d-flex align-items-center ms-lg-2">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80" class="rounded-circle border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover; margin-right: -10px;" alt="user">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop&q=80" class="rounded-circle border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover; margin-right: -10px;" alt="user">
+                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&auto=format&fit=crop&q=80" class="rounded-circle border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover; margin-right: -10px;" alt="user">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=80" class="rounded-circle border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover; margin-right: -6px;" alt="user">
+                    <span class="badge bg-primary-subtle text-primary border rounded-pill ms-2 fw-bold" style="font-size: 0.75rem;">+500K</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Laptop Dashboard Mockup matching screenshot -->
+        <div class="col-lg-6 position-relative">
+            <!-- Decorative User Avatars floating along a curved path -->
+            <div class="position-absolute d-none d-md-block" style="top: -20px; left: 10px; z-index: 10;">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" class="rounded-circle border border-3 border-white shadow" style="width: 52px; height: 52px; object-fit: cover;" alt="user">
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1" style="width: 14px; height: 14px;"></span>
+                </div>
+            </div>
+            <div class="position-absolute d-none d-md-block" style="top: 130px; left: -30px; z-index: 10;">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" class="rounded-circle border border-3 border-white shadow" style="width: 52px; height: 52px; object-fit: cover;" alt="user">
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1" style="width: 14px; height: 14px;"></span>
+                </div>
+            </div>
+            <div class="position-absolute d-none d-md-block" style="bottom: 40px; left: 0px; z-index: 10;">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" class="rounded-circle border border-3 border-white shadow" style="width: 52px; height: 52px; object-fit: cover;" alt="user">
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1" style="width: 14px; height: 14px;"></span>
+                </div>
+            </div>
+
+            <!-- Laptop Device Container -->
+            <div class="laptop-frame ms-md-4">
+                <div class="laptop-screen">
+                    <div class="row g-0">
+                        <!-- Dark Sidebar inside Mockup -->
+                        <div class="col-4 p-3 d-flex flex-column justify-content-between" style="background-color: #0b192c; min-height: 380px;">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-4 text-white">
+                                    <div class="bg-primary text-white rounded p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                        <i class="bi bi-file-earmark-check"></i>
+                                    </div>
+                                    <span class="fw-bold small">ResumeAI</span>
+                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="bg-primary text-white px-2 py-1 rounded small fw-semibold d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                                        <i class="bi bi-speedometer2"></i> Dashboard
+                                    </div>
+                                    <div class="text-white-50 px-2 py-1 rounded small fw-medium d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                                        <i class="bi bi-clock-history"></i> History
+                                    </div>
+                                    <div class="text-white-50 px-2 py-1 rounded small fw-medium d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                                        <i class="bi bi-person"></i> Profile
+                                    </div>
+                                    <div class="text-white-50 px-2 py-1 rounded small fw-medium d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                                        <i class="bi bi-gear"></i> Settings
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-2 rounded text-center" style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255,255,255,0.15);">
+                                <i class="bi bi-lightning-charge-fill text-warning mb-1"></i>
+                                <div class="text-white fw-bold" style="font-size: 0.7rem;">Upgrade to Pro</div>
+                            </div>
+                        </div>
+
+                        <!-- Mockup Dashboard Content -->
+                        <div class="col-8 p-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;">Resume Score</h6>
+                                <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;">Advisory</span>
+                            </div>
+
+                            <!-- Score Ring and Badge -->
+                            <div class="d-flex align-items-center gap-3 p-2 bg-light rounded-3 mb-3 border">
+                                <div class="position-relative d-flex align-items-center justify-content-center" style="width: 68px; height: 68px;">
+                                    <canvas id="mockupScoreRing" width="68" height="68"></canvas>
+                                    <div class="position-absolute text-center">
+                                        <span class="fw-bold text-dark" style="font-size: 1.15rem; line-height: 1;">{% if latest_analysis %}{{ latest_analysis.overall_score }}{% else %}92{% endif %}</span>
+                                        <span class="text-muted d-block" style="font-size: 0.55rem;">/100</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-1 text-success fw-bold" style="font-size: 0.8rem;">
+                                        <span>Excellent!</span> <i class="bi bi-graph-up-arrow"></i>
+                                    </div>
+                                    <p class="text-muted mb-0" style="font-size: 0.7rem;">Your resume looks great!</p>
+                                </div>
+                            </div>
+
+                            <!-- ATS Compatibility Bar -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold text-secondary" style="font-size: 0.72rem;">ATS Compatibility</span>
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;">{% if latest_analysis %}{{ latest_analysis.ats_compatibility }}{% else %}95{% endif %}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {% if latest_analysis %}{{ latest_analysis.ats_compatibility }}{% else %}95{% endif %}%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Key Skills Found Chips -->
+                            <div>
+                                <span class="fw-semibold text-secondary d-block mb-1" style="font-size: 0.72rem;">Key Skills Found</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% if latest_analysis and latest_analysis.skills_found %}
+                                        {% for s in latest_analysis.skills_found|slice:":3" %}
+                                            <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.65rem;">{{ s }}</span>
+                                        {% endfor %}
+                                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">+{{ latest_analysis.skills_found|length }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.65rem;">Python</span>
+                                        <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.65rem;">React</span>
+                                        <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.65rem;">Machine Learning</span>
+                                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">+5</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="laptop-base ms-md-4"></div>
+        </div>
+    </div>
+
+    <!-- Four Feature Cards matching bottom row of UI screenshot -->
+    <div class="row g-3 mt-5">
+        <div class="col-md-3 col-sm-6">
+            <div class="footer-card h-100">
+                <div class="feature-icon-box bg-primary-subtle text-primary">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Instant Analysis</h6>
+                    <small class="text-muted">Instant parser & score</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="footer-card h-100">
+                <div class="feature-icon-box bg-info-subtle text-info">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Detailed Insights</h6>
+                    <small class="text-muted">5 weighted criteria</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="footer-card h-100">
+                <div class="feature-icon-box bg-primary-subtle text-primary">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">ATS Friendly</h6>
+                    <small class="text-muted">Machine readability test</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="footer-card h-100">
+                <div class="feature-icon-box bg-primary-subtle text-primary">
+                    <i class="bi bi-rocket-takeoff-fill"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Boost Your Career</h6>
+                    <small class="text-muted">Grounded recommendations</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Drag & Drop File Upload Interactions
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('resumeFileInput');
+    const fileNameDisplay = document.getElementById('selectedFileName');
+    const submitBtnContainer = document.getElementById('submitBtnContainer');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('border-primary'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('border-primary'), false);
+    });
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+            fileInput.files = files;
+            updateFileInfo(files[0]);
+        }
+    }
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) {
+            updateFileInfo(this.files[0]);
+        }
+    });
+
+    function updateFileInfo(file) {
+        fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-check"></i> Selected: <b>${file.name}</b> (${(file.size/(1024*1024)).toFixed(2)} MB)`;
+        submitBtnContainer.classList.remove('d-none');
+    }
+
+    // Mockup Donut Chart
+    const ctx = document.getElementById('mockupScoreRing');
+    if (ctx) {
+        const scoreVal = {% if latest_analysis %}{{ latest_analysis.overall_score }}{% else %}92{% endif %};
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [scoreVal, 100 - scoreVal],
+                    backgroundColor: ['#10b981', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '78%',
+                responsive: false,
+                plugins: {
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
